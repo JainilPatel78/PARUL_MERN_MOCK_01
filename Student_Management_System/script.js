@@ -165,12 +165,13 @@ const renderStatistics = () => {
 };
 
 const getFilteredStudents = () => {
-    const searchTerm = searchInput.value.trim().toLowerCase();
-    const filterCourse = courseFilter.value;
+    const searchTerm = (searchInput?.value || "").trim().toLowerCase();
+    const filterCourse = (courseFilter?.value || "").trim();
 
     return students.filter((student) => {
         const matchesSearch = !searchTerm || student.name.toLowerCase().includes(searchTerm);
-        const matchesCourse = filterCourse === "All Courses" || student.course === filterCourse;
+        // treat empty or 'All Courses' as no filter
+        const matchesCourse = !filterCourse || filterCourse === "All Courses" || student.course === filterCourse;
         return matchesSearch && matchesCourse;
     });
 };
@@ -178,6 +179,8 @@ const getFilteredStudents = () => {
 const renderStudents = () => {
     const filteredStudents = getFilteredStudents();
     studentContainer.innerHTML = "";
+
+    console.log('DEBUG renderStudents: filteredStudents =', filteredStudents);
 
     if (filteredStudents.length === 0) {
         studentContainer.innerHTML = '<p class="empty-message">No students found</p>';
@@ -207,6 +210,8 @@ const renderStudents = () => {
 
         studentContainer.appendChild(card);
     });
+
+    console.log('DEBUG renderStudents: studentContainer children =', studentContainer.children.length);
 };
 
 const resetForm = () => {
@@ -314,6 +319,7 @@ form.addEventListener("submit", async (event) => {
                     photo: photoData || currentStudent.photo
                 };
             }
+            console.log('DEBUG: student updated, total students =', students.length);
         } else {
             students.push({
                 id: Date.now(),
@@ -327,7 +333,11 @@ form.addEventListener("submit", async (event) => {
                 about: studentData.about.trim(),
                 photo: photoData
             });
+            console.log('DEBUG: student added, total students =', students.length);
         }
+
+        // show filtered count for debug
+        try { console.log('DEBUG: filtered count =', getFilteredStudents().length); } catch (e) { /* ignore */ }
 
         renderStudents();
         renderStatistics();
